@@ -1,8 +1,10 @@
 {
+  "version": 2,
   "builds": [
-    { "src": "manage.py", "use": "@vercel/python" }
+    { "src": "inmobiliaria/wsgi.py", "use": "@vercel/python" }
   ],
   "routes": [
-    { "src": "/static/(.*)", "dest": "/static/$1" }
+    { "src": "/static/(.*)", "dest": "/static/$1" },
+    { "src": "/(.*)", "dest": "inmobiliaria/wsgi.py" }
   ]
 }
