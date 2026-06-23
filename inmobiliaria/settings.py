@@ -27,7 +27,7 @@ SECRET_KEY = 'django-insecure-o*a$a7rhw#^2mq*7%&8hf50)tk-w$4%s7y4$of$li1q-pcn4-7
 DEBUG = True
 
 # Proyecto pensado para correr 100% en localhost
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', 'entregable-4-final.vercel.app']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', '.vercel.app']
 
 
 # Application definition
