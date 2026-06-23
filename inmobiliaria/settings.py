@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-o*a$a7rhw#^2mq*7%&8hf50)tk-w$4%s7y4$of$li1q-pcn4-7
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-# Proyecto pensado para correr 100% en localhost o en vercel
+# Proyecto pensado para correr 100% en localhost
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', 'entregable-4-final.vercel.app']
 
 
@@ -46,13 +46,14 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware'
 ]
 
 # CORS: el frontend (templates Django o un live-server aparte) corre en localhost
@@ -140,6 +141,11 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
+# Directory where `collectstatic` will gather static files for production
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+# Use WhiteNoise's compressed manifest storage so static files are
+# served efficiently and file names are hashed for cache busting.
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Archivos subidos por el usuario (CSVs cargados desde el módulo de carga de datos)
 MEDIA_URL = 'media/'
