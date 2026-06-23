@@ -4,7 +4,7 @@
     { "src": "inmobiliaria/wsgi.py", "use": "@vercel/python" }
   ],
   "routes": [
-    { "src": "/static/(.*)", "dest": "/static/$1" },
+    { "src": "/static/(.*)", "dest": "/staticfiles/$1" },
     { "src": "/(.*)", "dest": "inmobiliaria/wsgi.py" }
   ]
 }
