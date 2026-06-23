@@ -1,0 +1,248 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plano — Buscador de departamentos en CABA</title>
+  <link rel="icon" type="image/svg+xml" href="{% static 'img/logo.svg' %}">
+  <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+  <script src="{% static 'js/chart.umd.js' %}"></script>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <header class="site-header">
+    <div class="brand">
+      <img src="{% static 'img/logo.svg' %}" alt="" width="40" height="40">
+      <div class="brand-text">
+        <span class="name">Plano</span>
+        <span class="tag">Departamentos · CABA</span>
+      </div>
+    </div>
+    <div class="header-meta">
+      Modelo: <strong>Gradient Boosting</strong> · price_m2<br>
+      Base local · SQLite · <span id="total-propiedades">—</span> unidades
+    </div>
+  </header>
+
+  <nav class="module-nav" role="tablist" aria-label="Módulos de la aplicación">
+    <button class="active" data-panel="buscador" role="tab" aria-selected="true"><span class="num">01</span>Buscador</button>
+    <button data-panel="estimador" role="tab" aria-selected="false"><span class="num">02</span>Estimador de precio</button>
+    <button data-panel="dashboard" role="tab" aria-selected="false"><span class="num">03</span>Panel de mercado</button>
+    <button data-panel="carga" role="tab" aria-selected="false"><span class="num">04</span>Cargar datos</button>
+  </nav>
+
+  <!-- ===================== MÓDULO 1: BUSCADOR ===================== -->
+  <section id="panel-buscador" class="panel active" role="tabpanel">
+    <h2 class="section-title">Encontrá tu departamento ideal</h2>
+    <p class="section-sub">Filtrá por precio, barrio, ambientes y amenities sobre la base de datos local.</p>
+
+    <div class="buscador-grid">
+      <aside class="card filtros-card">
+        <h3>Filtros</h3>
+
+        <div class="filtro-grupo">
+          <label for="f-barrio">Barrio</label>
+          <select id="f-barrio">
+            <option value="">Todos los barrios</option>
+          </select>
+        </div>
+
+        <div class="filtro-grupo">
+          <label>Precio total (USD)</label>
+          <div class="rango-doble">
+            <input type="number" id="f-precio-min" placeholder="Mín." min="0">
+            <input type="number" id="f-precio-max" placeholder="Máx." min="0">
+          </div>
+        </div>
+
+        <div class="filtro-grupo">
+          <label>Ambientes</label>
+          <div class="rango-doble">
+            <input type="number" id="f-amb-min" placeholder="Mín." min="0">
+            <input type="number" id="f-amb-max" placeholder="Máx." min="0">
+          </div>
+        </div>
+
+        <div class="filtro-grupo">
+          <label for="f-banios">Baños (mínimo)</label>
+          <select id="f-banios">
+            <option value="">Indistinto</option>
+            <option value="1">1+</option>
+            <option value="2">2+</option>
+            <option value="3">3+</option>
+          </select>
+        </div>
+
+        <div class="filtro-grupo">
+          <label>Superficie total (m²)</label>
+          <div class="rango-doble">
+            <input type="number" id="f-sup-min" placeholder="Mín." min="0">
+            <input type="number" id="f-sup-max" placeholder="Máx." min="0">
+          </div>
+        </div>
+
+        <div class="filtro-grupo">
+          <label>Amenities</label>
+          <div class="amenities-list">
+            <label class="amenity-check"><input type="checkbox" id="f-garage"> Cochera / garage</label>
+            <label class="amenity-check"><input type="checkbox" id="f-pileta"> Pileta</label>
+            <label class="amenity-check"><input type="checkbox" id="f-seguridad"> Seguridad</label>
+            <label class="amenity-check"><input type="checkbox" id="f-luminoso"> Luminoso</label>
+            <label class="amenity-check"><input type="checkbox" id="f-transporte"> Cerca de transporte</label>
+            <label class="amenity-check"><input type="checkbox" id="f-estrenar"> A estrenar</label>
+            <label class="amenity-check"><input type="checkbox" id="f-reciclado"> Reciclado</label>
+          </div>
+        </div>
+
+        <button class="btn btn-block" id="btn-aplicar-filtros">Buscar</button>
+        <button class="btn btn-secundario btn-block" id="btn-limpiar-filtros" style="margin-top:8px;">Limpiar filtros</button>
+      </aside>
+
+      <div class="resultados-col">
+        <div class="resultados-header">
+          <div class="resultados-count"><strong id="resultados-num">—</strong> propiedades encontradas</div>
+          <select class="orden-select" id="f-orden">
+            <option value="">Ordenar por...</option>
+            <option value="price">Precio: menor a mayor</option>
+            <option value="-price">Precio: mayor a menor</option>
+            <option value="-surface_total">Superficie: mayor a menor</option>
+            <option value="-id">Más recientes</option>
+          </select>
+        </div>
+
+        <div id="lista-propiedades" class="lista-propiedades"></div>
+        <div class="paginacion" id="paginacion"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== MÓDULO 2: ESTIMADOR ===================== -->
+  <section id="panel-estimador" class="panel" role="tabpanel">
+    <h2 class="section-title">Estimador de precio</h2>
+    <p class="section-sub">Ingresá las características de una unidad y el modelo predice su precio de mercado (USD/m²).</p>
+
+    <div class="estimador-grid">
+      <form class="card estimador-form" id="form-estimador">
+        <div class="form-row">
+          <label for="e-barrio">Barrio</label>
+          <select id="e-barrio" required>
+            <option value="">Seleccioná un barrio</option>
+          </select>
+        </div>
+
+        <div class="form-row">
+          <label for="e-superficie">Superficie total (m²)</label>
+          <input type="number" id="e-superficie" min="10" step="1" value="60" required>
+        </div>
+
+        <div class="form-row">
+          <label for="e-ambientes">Ambientes</label>
+          <input type="number" id="e-ambientes" min="1" step="1" value="3" required>
+        </div>
+
+        <div class="form-row">
+          <label for="e-banios">Baños</label>
+          <input type="number" id="e-banios" min="1" step="1" value="1" required>
+        </div>
+
+        <div class="form-row">
+          <label>Amenities y características</label>
+          <div class="form-row-amenities">
+            <label class="amenity-check"><input type="checkbox" id="e-garage"> Cochera</label>
+            <label class="amenity-check"><input type="checkbox" id="e-pileta"> Pileta</label>
+            <label class="amenity-check"><input type="checkbox" id="e-seguridad"> Seguridad</label>
+            <label class="amenity-check"><input type="checkbox" id="e-luminoso"> Luminoso</label>
+            <label class="amenity-check"><input type="checkbox" id="e-transporte"> Cerca transporte</label>
+            <label class="amenity-check"><input type="checkbox" id="e-estrenar"> A estrenar</label>
+            <label class="amenity-check"><input type="checkbox" id="e-reciclado"> Reciclado</label>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-block">Estimar precio</button>
+      </form>
+
+      <div class="card resultado-prediccion" id="resultado-prediccion">
+        <p class="placeholder">Completá el formulario y presioná<br>"Estimar precio" para ver el resultado.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== MÓDULO 3: DASHBOARD ===================== -->
+  <section id="panel-dashboard" class="panel" role="tabpanel">
+    <h2 class="section-title">Panel de mercado</h2>
+    <p class="section-sub">Cómo se forman los precios: origen de los datos detrás de cada estimación.</p>
+
+    <div class="dash-grid" id="dash-kpis">
+      <div class="card kpi-card"><div class="kpi-label">Propiedades en base</div><div class="kpi-valor" id="kpi-total">—</div></div>
+      <div class="card kpi-card"><div class="kpi-label">Mediana USD/m²</div><div class="kpi-valor" id="kpi-mediana">—</div></div>
+      <div class="card kpi-card"><div class="kpi-label">Promedio USD/m²</div><div class="kpi-valor" id="kpi-promedio">—</div></div>
+      <div class="card kpi-card"><div class="kpi-label">Barrios cubiertos</div><div class="kpi-valor" id="kpi-barrios">—</div></div>
+    </div>
+
+    <div class="charts-grid">
+      <div class="card chart-card">
+        <h4>Precio mediano por barrio (USD/m²)</h4>
+        <canvas id="chart-barrios" height="320"></canvas>
+      </div>
+      <div class="card chart-card">
+        <h4>Importancia de variables — modelo Gradient Boosting</h4>
+        <canvas id="chart-importancia" height="320"></canvas>
+      </div>
+    </div>
+
+    <div class="card chart-card">
+      <h4>Distribución de precios por m² (sin outliers extremos)</h4>
+      <canvas id="chart-distribucion" height="120"></canvas>
+    </div>
+  </section>
+
+  <!-- ===================== MÓDULO 4: CARGA CSV ===================== -->
+  <section id="panel-carga" class="panel" role="tabpanel">
+    <h2 class="section-title">Cargar datos</h2>
+    <p class="section-sub">Sumá nuevas propiedades a la base local a partir de un archivo CSV.</p>
+
+    <div class="carga-grid">
+      <div>
+        <div class="dropzone" id="dropzone">
+          <div class="icono">▦</div>
+          <p>Arrastrá tu archivo CSV acá<br>o hacé clic para seleccionarlo</p>
+          <p class="archivo-nombre" id="archivo-nombre"></p>
+          <input type="file" id="input-csv" accept=".csv" class="visually-hidden">
+        </div>
+        <button class="btn btn-block" id="btn-subir-csv" style="margin-top:14px;" disabled>Cargar archivo</button>
+        <div class="carga-resultado" id="carga-resultado"></div>
+      </div>
+
+      <div class="card requisitos-card">
+        <h4>Formato esperado</h4>
+        <p>El CSV debe tener al menos estas columnas:</p>
+        <ul>
+          <li><code>barrio</code> (o <code>l3</code>)</li>
+          <li><code>surface_total</code> — superficie en m²</li>
+          <li><code>price</code> — precio total en USD</li>
+        </ul>
+        <p>Columnas opcionales (si faltan, se completan por defecto):</p>
+        <ul>
+          <li><code>rooms</code>, <code>bedrooms</code>, <code>bathrooms</code></li>
+          <li><code>price_m2</code> (se calcula automáticamente si falta)</li>
+          <li><code>amenity_garage</code>, <code>amenity_pool</code>, <code>amenity_security</code></li>
+          <li><code>is_luminous</code>, <code>near_transport</code>, <code>is_a_estrenar</code>, <code>is_reciclado</code></li>
+        </ul>
+        <p>Las filas sin <code>barrio</code>, <code>surface_total</code> o <code>price</code> se descartan automáticamente y se informan al final de la carga.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <span>Plano — Trabajo final, Ciencia de Datos Aplicada · ITBA</span>
+    <span>Django REST + Gradient Boosting (scikit-learn) · 100% local</span>
+  </footer>
+
+</div>
+
+<script src="{% static 'js/app.js' %}"></script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+Django>=4.2,<6
+djangorestframework>=3.14,<4
+django-cors-headers>=4.3,<5
+pandas>=2.0,<3
+numpy>=1.24,<3
+# El pipeline .joblib provisto fue entrenado con scikit-learn 1.8.0 (requiere
+# Python 3.11+). Si tu Python es más viejo, pip instalará automáticamente la
+# versión de scikit-learn compatible con tu entorno; en ese caso correr
+# `python train_model.py` una vez para regenerar el modelo (ver README,
+# sección 2 y 5).
+scikit-learn>=1.3,<2
+joblib>=1.3,<2
